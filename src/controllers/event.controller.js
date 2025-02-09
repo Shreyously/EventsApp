@@ -214,40 +214,49 @@ export const joinEvent = async (req, res) => {
 export const leaveEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
-
+    
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-     // Check if user is actually in the event
-     if (!event.attendees.includes(req.user._id)) {
+    // Check if user is actually in the event
+    const isAttending = event.attendees.some(
+      attendee => attendee.toString() === req.user._id.toString()
+    );
+
+    if (!isAttending) {
       return res.status(400).json({ message: 'Not attending this event' });
     }
 
-    // Update Event model
+    // Remove user from attendees
     event.attendees = event.attendees.filter(
       attendee => attendee.toString() !== req.user._id.toString()
     );
     await event.save();
 
-    // Update User model
+    // Remove event from user's attending events
     await User.findByIdAndUpdate(
       req.user._id,
       { $pull: { eventsAttending: event._id } }
     );
-     // Get updated event with populated data
-     const updatedEvent = await Event.findById(event._id)
-     .populate('creator', 'name')
-     .populate('attendees', 'name');
 
-   // Emit socket events
-   io.to(`event:${event._id}`).emit('eventUpdate', updatedEvent);
-   io.to(`event:${event._id}`).emit('userLeft', {
-     eventId: event._id,
-     user: req.user
-   });
+    // Get updated event with populated data
+    const updatedEvent = await Event.findById(event._id)
+      .populate('creator', 'name')
+      .populate('attendees', 'name _id');
 
-   res.json(updatedEvent);
+    // Emit socket events
+    io.to(`event:${event._id}`).emit('eventUpdate', updatedEvent);
+    io.to(`event:${event._id}`).emit('userLeft', {
+      eventId: event._id,
+      user: {
+        _id: req.user._id,
+        name: req.user.name
+      },
+      timestamp: new Date()
+    });
+
+    res.json(updatedEvent);
   } catch (error) {
     console.error('Error leaving event:', error);
     res.status(500).json({ message: 'Server error' });
