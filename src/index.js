@@ -16,16 +16,17 @@ export const io = setupSocket(httpServer);
 
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(cookieParser());
+
 app.use(cors({
-    origin: ["http://localhost:5173", "https://your-vercel-domain.vercel.app"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: ["http://localhost:5173", "https://your-frontend-domain.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
+    exposedHeaders: ["set-cookie"]
 }));
+app.use(cookieParser());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.options("*", cors());
 
 // Routes
