@@ -5,7 +5,9 @@ const setupSocket = (server) => {
     cors: {
       origin: [
         "http://localhost:5173",
-        "https://events-60sifxuo8-shreyouslys-projects.vercel.app"
+        "https://events-60sifxuo8-shreyouslys-projects.vercel.app",
+        "https://eventx-ce0b27j18-shreyouslys-projects.vercel.app",
+        "https://events.vercel.app"
       ],
       methods: ["GET", "POST"],
       credentials: true,
