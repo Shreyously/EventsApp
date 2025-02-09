@@ -210,56 +210,57 @@ export const joinEvent = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
+// filepath: backend/src/controllers/event.controller.js
 export const leaveEvent = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
-    
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
-    }
+      if (!req.user) {
+          return res.status(401).json({ message: 'User not authenticated' });
+      }
 
-    // Check if user is actually in the event
-    const isAttending = event.attendees.some(
-      attendee => attendee.toString() === req.user._id.toString()
-    );
+      const event = await Event.findById(req.params.id);
 
-    if (!isAttending) {
-      return res.status(400).json({ message: 'Not attending this event' });
-    }
+      if (!event) {
+          return res.status(404).json({ message: 'Event not found' });
+      }
 
-    // Remove user from attendees
-    event.attendees = event.attendees.filter(
-      attendee => attendee.toString() !== req.user._id.toString()
-    );
-    await event.save();
+      const userId = req.user._id;
 
-    // Remove event from user's attending events
-    await User.findByIdAndUpdate(
-      req.user._id,
-      { $pull: { eventsAttending: event._id } }
-    );
+      const isAttending = event.attendees.some(
+          attendee => attendee.toString() === userId.toString()
+      );
 
-    // Get updated event with populated data
-    const updatedEvent = await Event.findById(event._id)
-      .populate('creator', 'name')
-      .populate('attendees', 'name _id');
+      if (!isAttending) {
+          return res.status(400).json({ message: 'Not attending this event' });
+      }
 
-    // Emit socket events
-    io.to(`event:${event._id}`).emit('eventUpdate', updatedEvent);
-    io.to(`event:${event._id}`).emit('userLeft', {
-      eventId: event._id,
-      user: {
-        _id: req.user._id,
-        name: req.user.name
-      },
-      timestamp: new Date()
-    });
+      event.attendees = event.attendees.filter(
+          attendee => attendee.toString() !== userId.toString()
+      );
+      await event.save();
 
-    res.json(updatedEvent);
+      await User.findByIdAndUpdate(
+          userId,
+          { $pull: { eventsAttending: event._id } }
+      );
+
+      const updatedEvent = await Event.findById(event._id)
+          .populate('creator', 'name')
+          .populate('attendees', 'name _id');
+
+      io.to(`event:${event._id}`).emit('eventUpdate', updatedEvent);
+      io.to(`event:${event._id}`).emit('userLeft', {
+          eventId: event._id,
+          user: {
+              _id: userId,
+              name: req.user.name
+          },
+          timestamp: new Date()
+      });
+
+      res.json(updatedEvent);
   } catch (error) {
-    console.error('Error leaving event:', error);
-    res.status(500).json({ message: 'Server error' });
+      console.error('Error leaving event:', error);
+      res.status(500).json({ message: 'Server error' });
   }
 };
 

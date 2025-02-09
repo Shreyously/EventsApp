@@ -5,15 +5,15 @@ dotenv.config();
 
 export const generateToken = (userId, res) => {
   const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: '7d'
+      expiresIn: '7d'
   });
 
   res.cookie("jwt", token, {
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    path: '/',
-    domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : 'localhost'
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? 'eventsapp-2.onrender.com' : undefined // Remove localhost
   });
 };

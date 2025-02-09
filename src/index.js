@@ -26,18 +26,18 @@ const corsOptions = {
     origin: [
         "http://localhost:5173",
         "https://events-6rjfmxjoo-shreyouslys-projects.vercel.app",
-        "https://events.vercel.app",
+        "https://events.vercel.app" // Add your production URL
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
     exposedHeaders: ["set-cookie"],
     preflightContinue: false,
-    optionsSuccessStatus: 200,
+    optionsSuccessStatus: 204, // Or 200
 };
 
 app.use(cors(corsOptions));
-// app.options("*", cors()); // Optional, handled by CORS middleware
+app.options('*', cors());
 
 // API Routes
 app.use("/api/user", UserRoute);
