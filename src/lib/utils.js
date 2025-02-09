@@ -14,6 +14,6 @@ export const generateToken = (userId, res) => {
     sameSite: 'none',
     secure: true,
     path: '/',
-    domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined
+    domain: process.env.NODE_ENV === 'production' ? 'onrender.com' : 'localhost'
   });
 };
