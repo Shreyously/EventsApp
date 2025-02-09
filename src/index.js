@@ -24,13 +24,20 @@ app.use(cors({
     origin: [
         "http://localhost:5173", 
         "https://events-60sifxuo8-shreyouslys-projects.vercel.app",
-        // Add any other frontend domains here
+        "https://events.vercel.app"
     ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: [
+        "Origin", 
+        "X-Requested-With", 
+        "Content-Type", 
+        "Accept", 
+        "Authorization"
+    ],
     exposedHeaders: ["set-cookie"],
-    preflightContinue: true
+    preflightContinue: false,
+    optionsSuccessStatus: 200
 }));
 
 app.options("*", cors());
