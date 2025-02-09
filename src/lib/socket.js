@@ -3,17 +3,16 @@ import { Server } from 'socket.io';
 const setupSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: [
-        "http://localhost:5173",
-        "https://events-60sifxuo8-shreyouslys-projects.vercel.app",
-        "https://eventx-ce0b27j18-shreyouslys-projects.vercel.app",
-        "https://events.vercel.app"
-      ],
-      methods: ["GET", "POST"],
-      credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"]
+        origin: [
+            "http://localhost:5173",
+            "https://events-6rjfmxjoo-shreyouslys-projects.vercel.app",
+            "https://events.vercel.app"
+        ],
+        methods: ["GET", "POST"],
+        credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization"]
     }
-  });
+});
 
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);

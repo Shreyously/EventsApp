@@ -2,13 +2,13 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { createServer } from "http";
 import { connectDB } from "./lib/db.js";
+import setupSocket from "./lib/socket.js";
 import UserRoute from "./routes/user.route.js";
 import EventRoute from "./routes/event.route.js";
-import { createServer } from 'http';
-import setupSocket from './lib/socket.js'; 
 
-dotenv.config();
+dotenv.config(); // Ensure environment variables are loaded first
 
 const app = express();
 const httpServer = createServer(app);
@@ -16,41 +16,49 @@ export const io = setupSocket(httpServer);
 
 const PORT = process.env.PORT || 5000;
 
+// Middleware
 app.use(cookieParser());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
-app.use(cors({
+// CORS Configuration
+const corsOptions = {
     origin: [
-        "http://localhost:5173", 
-        "https://events-60sifxuo8-shreyouslys-projects.vercel.app",
-        "https://events.vercel.app"
+        "http://localhost:5173",
+        "https://events-6rjfmxjoo-shreyouslys-projects.vercel.app",
+        "https://events.vercel.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: [
-        "Origin", 
-        "X-Requested-With", 
-        "Content-Type", 
-        "Accept", 
-        "Authorization"
-    ],
+    allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
     exposedHeaders: ["set-cookie"],
     preflightContinue: false,
-    optionsSuccessStatus: 200
-}));
+    optionsSuccessStatus: 200,
+};
 
-app.options("*", cors());
+app.use(cors(corsOptions));
+// app.options("*", cors()); // Optional, handled by CORS middleware
 
-// Routes
+// API Routes
 app.use("/api/user", UserRoute);
 app.use("/api/events", EventRoute);
 
-// Connect to DB and start server
-connectDB().then(() => {
-    httpServer.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: "Something went wrong!" });
 });
+
+// Connect to DB and Start Server
+connectDB()
+    .then(() => {
+        httpServer.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    })
+    .catch((error) => {
+        console.error("Database connection failed:", error);
+        process.exit(1); // Exit process if DB connection fails
+    });
 
 export { app };
